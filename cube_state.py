@@ -57,19 +57,6 @@ class CubeState:
             self.corner_state = corner_state
         else:
             self.corner_state = copy(self.SOLVED_CORNER_STATE)
-    
-    # def __str__(self):
-    #     """Return a representation of the cube"""
-    #     lines = []
-
-    #     for i, edge in enumerate(self.edge_state):
-    #         edge_id = edge & 0b01111
-    #         lines.append(f"Edge at position {i}: {edge_id}")
-    #     for i, corner in enumerate(self.corner_state):
-    #         corner_id = corner & 0b00111
-    #         lines.append(f"Corner at position {i}: {corner_id}")
-        
-    #     return "\n".join(lines)
 
     def __str__(self):
         return generate_net(self)

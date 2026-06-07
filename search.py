@@ -226,7 +226,7 @@ if __name__ == "__main__":
     
     print(f"Searching with MITM up to depth {max_depth}")
     start = time.perf_counter()
-    # solutions = mitm_searcher.run_search(scrambled_cube, solved_cube, max_depth=max_depth)
+    solutions = mitm_searcher.run_search(scrambled_cube, solved_cube, max_depth=max_depth)
     solutions = []
     end = time.perf_counter()
 
