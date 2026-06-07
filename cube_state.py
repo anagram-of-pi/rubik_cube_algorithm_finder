@@ -3,6 +3,38 @@ from copy import copy
 from misc import *
 
 
+
+class CubeRestriction:
+    """Specify which pieces should move and where, as well as which ones to keep in place and which do not matter."""
+    def __init__(self, 
+            # Starts as a solved cube
+            locked_edges=[], 
+            locked_corners=[], 
+            edge_id=[], 
+            edge_destination=[], 
+            edge_orientation=[], 
+            corner_id=[], 
+            corner_destination=[], 
+            corner_orientation=[]
+        ):
+        self.target_edges = bytearray([255] * 12)
+        self.target_corners = bytearray([255] * 8)
+
+        for id in locked_edges:
+            self.target_edges[id] = id
+        for id in locked_corners:
+            self.target_corners[id] = id
+        for id, dest, oriented in zip(edge_id, edge_destination, edge_orientation):
+            self.target_edges[dest] = oriented << 4 | id 
+        for id, dest, orientation in zip(corner_id, corner_destination, corner_orientation):
+            self.target_corners[dest] = orientation << 3 | id 
+        
+        
+
+        # self.locked_edges = bytearray()
+        # self.locked_corners = bytearray()
+
+
 class CubeState:
     """Cube object that holds a position and is able to turn"""
     # Format: (0bOEEEE) x12 where O=orientation and EEEE=edge num
@@ -50,6 +82,33 @@ class CubeState:
     
     def matches_state(self, state):
         return (self.edge_state == state.edge_state) and (self.corner_state == state.corner_state)
+    
+    def matches_restriction(self, restriction: CubeRestriction):
+        # Self format:
+        # edges/corners: [idx 0: edgeid]
+        # Restriction format
+        # target edges/corners: [idx 0: None | int]
+        # None means it shouldn't care about it. It may or may not be messed up
+        # id == idx means that it should be unaffected
+        # id != idx means that id should move to idx
+
+        for idx, restricted_edge in enumerate(restriction.target_edges):
+            self_edge = self.edge_state[idx]
+            if restricted_edge != 255: # If it is None, we don't care about it
+                if self_edge != restricted_edge:
+                    return False # We wanted this to be equal
+                
+        for idx, restricted_corner in enumerate(restriction.target_corners):
+            self_corner = self.corner_state[idx]
+            if restricted_corner != 255: # If it is None, we don't care about it
+                if self_corner != restricted_corner:
+                    return False # We wanted this to be equal
+        
+        return True
+        
+
+
+        # return (self.edge_state == state.edge_state) and (self.corner_state == state.corner_state)
     
     def reset_cube(self):
         """Set the CubeState to a solved position"""
@@ -144,7 +203,7 @@ class CubeState:
     
     def make_moves(self, moves):
         MOVE_NAMES = ("L", "L'", "L2", "R", "R'", "R2", "D", "D'", "D2",
-              "U", "U'", "U2", "F", "F'", "F2", "B", "B'", "B2")
+                      "U", "U'", "U2", "F", "F'", "F2", "B", "B'", "B2")
         
         for move in moves:
             if isinstance(move, int):
